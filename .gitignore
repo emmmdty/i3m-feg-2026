@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# Environments and local config
+.venv/
+venv/
+env/
+.env
+.env.*
+*.local.env
+*.conda
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data and generated artifacts
+data/raw/*
+data/processed/*
+outputs/*
+logs/*
+tables/*.csv
+tables/*.tsv
+tables/*.xlsx
+
+# Large model artifacts
+models/*
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.gguf
+
+# Paper generated artifacts and downloaded templates
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/templates/*
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Keep directory placeholders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!outputs/.gitkeep
+!logs/.gitkeep
+!tables/.gitkeep
+!models/.gitkeep
