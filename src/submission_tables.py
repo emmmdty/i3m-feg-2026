@@ -116,11 +116,34 @@ def render_ablation_table(rows: list[dict[str, str]]) -> str:
         for row in rows
     ]
     return render_tabular(
-        "Controlled replay ablation results.",
+        "Controlled replay agreement under injected perturbations.",
         "tab:ablation",
-        ["Method", "Schema", "Evidence", "Merge", "Conflict", "Replay", "ms/rec.", "n"],
+        ["Method", "Schema", "Evidence", "Merge Agr.", "Conflict Agr.", "Replay", "ms/rec.", "n"],
         table_rows,
         r"@{\extracolsep{\fill}}lrrrrrrr@{}",
+    )
+
+
+def render_metadata_hidden_table(rows: list[dict[str, str]]) -> str:
+    table_rows = [
+        [
+            latex_escape(row.get("setting", "")),
+            latex_escape(row.get("uses_perturbation_metadata", "")),
+            format_decimal(row.get("merge_agreement")),
+            format_decimal(row.get("conflict_agreement")),
+            format_decimal(row.get("update_agreement")),
+            format_decimal(row.get("operator_agreement")),
+            format_decimal(row.get("replay_completeness")),
+            format_decimal(row.get("runtime_ms_per_record")),
+        ]
+        for row in rows
+    ]
+    return render_tabular(
+        "Metadata-hidden diagnostic replay agreement.",
+        "tab:metadata-hidden",
+        ["Setting", "Metadata", "Merge", "Conflict", "Update", "Operator", "Replay", "Runtime"],
+        table_rows,
+        r"@{\extracolsep{\fill}}llrrrrrr@{}",
     )
 
 

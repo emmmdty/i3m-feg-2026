@@ -96,7 +96,7 @@ CSS
   pandoc "$MD" \
     --standalone \
     --resource-path=paper:. \
-    --metadata pagetitle="A Reproducible Versioned Event Graph Prototype for Evidence-Constrained Financial Event Stream Simulation" \
+    --metadata pagetitle="A Controlled-Replay Prototype for Auditable Versioned Financial Event Graph Updates" \
     --include-in-header="$STYLE" \
     -o "$HTML"
   CHROME="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
