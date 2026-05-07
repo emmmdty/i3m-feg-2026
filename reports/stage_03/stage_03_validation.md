@@ -43,4 +43,4 @@ PASS.
 
 ## Commit Hash
 
-Pending. This will be filled after the Stage 03 commit is created.
+Stage 03 results commit: `06eddb7`.
