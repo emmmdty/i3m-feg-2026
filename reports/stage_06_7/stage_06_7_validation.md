@@ -71,4 +71,4 @@ Stage 6.7 acceptance passed. Stage 7 submission-package work is allowed after Gi
 
 Accepted patch commit before validation rerun: `7902f953d706b723564d5817ee3b2d4fc29a99b2`.
 
-Validation commit hash: `PENDING_AFTER_COMMIT`.
+Validation commit hash: `b12f6c38634a23e6daade1e116adc421eed6feb7`.
