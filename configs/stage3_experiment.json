@@ -1,0 +1,9 @@
+{
+  "stage": "stage_03",
+  "stream": "data/processed/controlled_stream.jsonl",
+  "ablation_output": "tables/ablation_results.csv",
+  "case_study_output": "tables/case_study_updates.csv",
+  "summary_output": "reports/stage_03/experiment_summary.md",
+  "training": "no_gpu_training_required",
+  "notes": "Rule-based reproducible experiment validation; no model training, no GPU training, no external API calls."
+}
