@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 396] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 925 >>
+stream
+0.2 w
+70 58 m 577 58 l S
+70 58 m 70 348 l S
+0.9 0.9 0.9 RG
+70 130.50 m 577 130.50 l S
+70 203.00 m 577 203.00 l S
+70 275.50 m 577 275.50 l S
+70 348.00 m 577 348.00 l S
+0 0 0 RG
+1.2 w 70.00 86.08 m
+142.43 112.59 l
+287.29 187.72 l
+577.00 348.00 l
+S
+67.50 83.58 5 5 re f
+139.93 110.09 5 5 re f
+284.79 185.22 5 5 re f
+574.50 345.50 5 5 re f
+BT /F1 13 Tf 70.00 360.00 Td (Runtime scaling under controlled streams) Tj ET
+BT /F1 10 Tf 230.00 18.00 Td (Replay records) Tj ET
+BT /F1 10 Tf 16.00 205.00 Td (Total runtime \(ms\)) Tj ET
+BT /F1 8 Tf 60.00 40.00 Td (70) Tj ET
+BT /F1 8 Tf 74.00 92.08 Td (0.95) Tj ET
+BT /F1 8 Tf 132.43 40.00 Td (140) Tj ET
+BT /F1 8 Tf 146.43 118.59 Td (1.84) Tj ET
+BT /F1 8 Tf 277.29 40.00 Td (280) Tj ET
+BT /F1 8 Tf 291.29 193.72 Td (4.37) Tj ET
+BT /F1 8 Tf 567.00 40.00 Td (560) Tj ET
+BT /F1 8 Tf 581.00 354.00 Td (9.77) Tj ET
+BT /F1 8 Tf 42.00 55.00 Td (0) Tj ET
+BT /F1 8 Tf 22.00 345.00 Td (9.77) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001217 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+1287
+%%EOF

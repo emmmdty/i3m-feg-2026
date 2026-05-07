@@ -49,6 +49,16 @@ paper/*.bbl
 paper/*.blg
 paper/*.synctex.gz
 paper/templates/*
+paper/i3m_submission/*.aux
+paper/i3m_submission/*.bbl
+paper/i3m_submission/*.blg
+paper/i3m_submission/*.fdb_latexmk
+paper/i3m_submission/*.fls
+paper/i3m_submission/*.log
+paper/i3m_submission/*.out
+paper/i3m_submission/*.spl
+paper/i3m_submission/*.synctex.gz
+paper/i3m_submission/build_logs/*
 
 # Archives
 *.zip

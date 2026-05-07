@@ -190,6 +190,7 @@ def build_stream(
     duplicates: int,
     conflicts: int,
     updates: int,
+    temporal_shuffles: int,
     shuffle: bool,
 ) -> list[dict[str, Any]]:
     sequence = 1
@@ -221,7 +222,7 @@ def build_stream(
         stream.append(make_update(sequence, sample, copy_index))
         sequence += 1
 
-    for copy_index, sample in enumerate(take_samples(samples, 10), start=1):
+    for copy_index, sample in enumerate(take_samples(samples, temporal_shuffles), start=1):
         stream.append(make_temporal_shuffle(sequence, sample, copy_index))
         sequence += 1
 
@@ -242,6 +243,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--duplicates", type=int, default=10)
     parser.add_argument("--conflicts", type=int, default=10)
     parser.add_argument("--updates", type=int, default=10)
+    parser.add_argument("--temporal-shuffles", type=int, default=10)
     parser.add_argument("--shuffle", action="store_true")
     return parser.parse_args()
 
@@ -249,7 +251,15 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     samples = read_jsonl(args.input)
-    stream = build_stream(samples, args.seed, args.duplicates, args.conflicts, args.updates, args.shuffle)
+    stream = build_stream(
+        samples,
+        args.seed,
+        args.duplicates,
+        args.conflicts,
+        args.updates,
+        args.temporal_shuffles,
+        args.shuffle,
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as fh:
         for record in stream:
