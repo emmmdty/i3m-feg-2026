@@ -1,0 +1,9 @@
+{
+  "seed_records": "data/samples/seed_financial_events.jsonl",
+  "controlled_stream": "data/processed/controlled_stream.jsonl",
+  "seed": 42,
+  "seed_record_count": 30,
+  "controlled_replay_record_count": 70,
+  "public_mini_case_record_count": 20,
+  "scale_sanity_max_records": 560
+}

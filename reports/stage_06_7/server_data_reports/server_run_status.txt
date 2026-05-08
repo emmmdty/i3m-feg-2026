@@ -1,4 +1,0 @@
-training: no
-model inference: no
-external API calls: none
-no_gpu_training_required

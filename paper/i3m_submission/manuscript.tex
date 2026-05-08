@@ -1,10 +1,11 @@
-% I3M/EMSS 2026 submission manuscript derived from the official Procedia template.
+% Clean I3M/EMSS submission manuscript.
 \documentclass[3p,times,procedia]{elsarticle}
 \flushbottom
 
 \usepackage{ecrc}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage[bookmarks=false]{hyperref}
 
@@ -20,7 +21,7 @@
 \begin{document}
 \begin{frontmatter}
 
-\dochead{38th European Modeling \& Simulation Symposium (EMSS 2026), held within the 23rd International Multidisciplinary Modeling \& Simulation Multiconference (I3M 2026)}
+\dochead{38th European Modeling \& Simulation Symposium (EMSS 2026), I3M 2026}
 
 \title{A Controlled-Replay Prototype for Auditable Versioned Financial Event Graph Updates}
 
@@ -29,11 +30,11 @@
 \address[a]{School of Astronautics, Harbin Institute of Technology, Harbin, China}
 
 \begin{abstract}
-Financial event records used in simulation and auditing workflows need explicit evidence links, update histories, and reproducible replay traces. This short paper presents a controlled-replay prototype for auditable versioned financial event graph updates. The prototype accepts deterministic event records, checks required schema fields and exact evidence-span containment, applies a compact set of graph update operators, and replays synthetic controlled streams as a discrete-event simulation. This paper does not evaluate financial event extraction accuracy or market prediction. Instead, it studies whether controlled financial event records can be replayed into an auditable versioned event graph with explicit evidence and state-transition artifacts. The evaluation is intentionally limited to controlled replay behavior: schema validity, evidence coverage, replay agreement under injected perturbations, replay completeness, metadata-hidden diagnostics, a public-dataset mini-case, and lightweight runtime behavior. The results support only a conservative auditability case-study claim for the implemented prototype, not benchmark-level generalization or deployment performance.
+Financial event records used in simulation and audit workflows require evidence links, update histories, and reproducible state transitions. This paper presents a controlled-replay prototype for auditable versioned financial event graph updates. The artifact checks required event-record fields, enforces exact evidence-span containment, applies deterministic graph update operators, and records append-only version logs. Evaluation is intentionally narrow: 70 controlled records exercise oracle-controlled replay, a metadata-hidden diagnostic obtains 0.586 operator agreement, 20 FewFC-derived public mini-case records provide an external sanity check, and a 560-record scale sanity run checks lightweight runtime behavior. The paper reports no extraction F1, no market prediction, and no benchmark-level generalization. The evidence supports a limited auditability claim: controlled financial event updates can be replayed into inspectable graph transitions with explicit evidence and failure logs.
 \end{abstract}
 
 \begin{keyword}
-event graph \sep controlled replay \sep discrete-event simulation \sep auditability \sep modeling and simulation
+event graph \sep controlled replay \sep discrete-event simulation \sep auditability \sep version log
 \end{keyword}
 
 \end{frontmatter}
@@ -42,178 +43,138 @@ event graph \sep controlled replay \sep discrete-event simulation \sep auditabil
 
 \section{Introduction}
 
-Financial event extraction and reporting pipelines often stop at structured records. For simulation and audit, however, the record alone is not enough: the system also needs evidence links, update histories, and a replayable state-transition trace. A duplicate record, a revised amount, or a contradictory disclosure should leave an explicit graph transition rather than a silent overwrite.
+Financial event records are often treated as final structured outputs. For modeling and simulation workflows, that view is incomplete: a record may duplicate a prior disclosure, revise a previous amount, or contradict an earlier statement. If such changes are silently overwritten, later audit and verification become difficult. A simulation artifact should therefore preserve evidence, replay order, state transitions, and failure reasons.
 
-This paper studies that narrower infrastructure problem. The contribution is a reproducible controlled-replay prototype, not a financial event extraction benchmark system and not a financial prediction system. We ask whether a synthetic controlled stream of financial event records can be checked against source evidence, inserted into a versioned event graph, updated through a small deterministic operator set, and replayed as a discrete-event simulation with auditable artifacts.
+Event records need replay and version logs because their operational meaning depends on graph state. The same incoming record may be a new event in an empty graph, a merge candidate after a target exists, or a failed operation if target resolution cannot be justified. A compact replay model can make these decisions inspectable by connecting each accepted record to a graph transition and each rejected record to an explicit skip reason.
 
-This work frames financial event graph maintenance as a discrete-event simulation problem: each incoming record is an event that triggers a state transition, and the resulting version log is the simulation trace. The artifact is evaluated as a simulation and auditability prototype rather than as an information-extraction model.
+Existing financial event extraction research focuses on converting documents into structured events \cite{yang2018dcfee,zheng2019doc2edag,ma2022fewfc}. Provenance and event-sourcing work emphasizes traceable state reconstruction \cite{w3c2013provo,fowler2005eventsourcing}. Discrete-event simulation and verification literature emphasizes explicit event-driven state change and validation discipline \cite{banks2010discrete,law2015simulation,sargent2013verification}. The gap addressed here is narrower: a reproducible artifact for evidence-gated replay of controlled financial event records into a versioned event graph.
 
-The prototype follows a design-science framing suitable for an EMSS/I3M short paper. It specifies a compact event-record schema, an evidence gate based on exact span containment, a versioned event graph, and a replay simulator. The experiments use synthetic controlled streams to exercise duplicate merges, slot updates, conflict marks, and temporal replay order. The paper reports only numbers generated by the repository scripts.
+This paper makes three contributions. First, it defines an evidence-gated controlled replay model for financial event records. Second, it implements versioned event graph transition artifacts, including target resolution, invariant checks, version logs, and replay traces. Third, it reports reproducible diagnostics, including metadata-hidden replay, negative controls, invariant checks, a public mini-case, and a scale sanity run.
 
 \section{Related work}
 
 \subsection{Financial event extraction and event records}
 
-Document-level financial event extraction systems such as DCFEE \cite{yang2018dcfee} and Doc2EDAG \cite{zheng2019doc2edag} motivate the need for structured event records whose arguments may be distributed across a document. Their main problem is extraction from financial text. Our problem begins after event-like records are available: we study whether controlled records can be evidence-constrained, versioned, and replayed reproducibly.
+Document-level financial event extraction systems such as DCFEE \cite{yang2018dcfee} and Doc2EDAG \cite{zheng2019doc2edag} show that financial events often require multi-sentence argument assembly. FewFC provides a public few-shot financial event extraction dataset \cite{ma2022fewfc}. These works motivate structured financial event records. The present artifact starts after record construction and studies replay, evidence gates, and graph update logs rather than extraction model quality.
 
-\subsection{Provenance, event sourcing, and versioned graph maintenance}
+\subsection{Provenance, audit trails, and event sourcing}
 
-The W3C PROV-O vocabulary \cite{w3c2013provo} emphasizes explicit provenance over entities and activities. Event sourcing \cite{fowler2005eventsourcing} emphasizes reconstructing state from an event log. The prototype follows the same auditability principle in a smaller setting: event nodes, entity links, conflicts, merges, and version logs are all kept as replay artifacts.
+The W3C PROV-O vocabulary defines provenance concepts for entities and activities \cite{w3c2013provo}. Event sourcing records state changes as an append-only event history \cite{fowler2005eventsourcing}. Database and workflow audit trails similarly emphasize traceable data evolution \cite{buneman2001and}. The prototype follows this auditability principle in a compact graph setting: each applied or failed replay decision is represented as a version log entry.
 
-\subsection{Discrete-event simulation for auditable event streams}
+\subsection{Discrete-event simulation and reproducible artifacts}
 
-Discrete-event simulation represents system evolution as event-triggered state transitions \cite{banks2010discrete}. In this paper the event stream is not a market model and does not estimate future outcomes. The simulation role is to replay controlled record perturbations and expose each graph state transition for inspection.
+Discrete-event simulation describes systems whose state changes at event times \cite{banks2010discrete,law2015simulation}. Verification, validation, and testing guidance for simulation models stresses traceable assumptions, reproducible runs, and explicit limits on interpretation \cite{sargent2013verification}. This paper uses those ideas for event graph maintenance: incoming records trigger state transitions, while replay traces support inspection and reproduction.
 
-\section{Problem definition and simulation model}
+\section{Methodology}
 
-The input consists of deterministic seed records and a controlled perturbation stream. A seed record contains an event identifier, event type, subject, object, date, trigger, evidence span, source document identifier, source text, amount, and status. A stream record wraps an event payload with replay metadata such as arrival index, perturbation type, base event identifier, and expected operator. This metadata is used only for controlled replay diagnostics and is removed in the metadata-hidden check.
+\subsection{Event records and evidence gate}
 
-\begin{table}[t]
-\caption{Event record and replay stream schema.}
-\label{tab:schema}
-\begin{tabular*}{\hsize}{@{\extracolsep{\fill}}lll@{}}
-\toprule
-Group & Fields & Role\\
-\colrule
-Event identity & \texttt{event\_id}, \texttt{event\_type} & graph event key and type\\
-Arguments & \texttt{subject}, \texttt{object}, \texttt{amount}, \texttt{status} & event slots and entity links\\
-Time and trigger & \texttt{time}, \texttt{trigger} & replay ordering and event trigger\\
-Evidence & \texttt{source\_doc\_id}, \texttt{source\_text}, \texttt{evidence\_span} & exact-span evidence gate\\
-Replay metadata & \texttt{stream\_record\_id}, \texttt{arrival\_index} & deterministic replay trace\\
-Perturbation metadata & \texttt{base\_event\_id}, \texttt{perturbation\_type}, \texttt{expected\_operator} & controlled agreement checks\\
-\botrule
-\end{tabular*}
-\end{table}
+An event record is represented as
+\begin{equation}
+x_i = (id_i, type_i, subj_i, obj_i, time_i, trig_i, span_i, doc_i, text_i, a_i, status_i).
+\end{equation}
+The required fields are event identity, event type, subject, object, date, trigger, evidence span, source document identifier, and source text. Optional slots include amount and status. A record passes the evidence gate only when
+\begin{equation}
+span_i \ne \emptyset \quad \wedge \quad span_i \subset text_i,
+\end{equation}
+where containment is exact string containment. The main experiments do not use fuzzy matching.
 
-At replay step $t$, the prototype maintains a versioned event graph
+\subsection{Replay policy and target resolution}
+
+At replay step $t$, the simulator chooses an operator
+\begin{equation}
+o_t \in \{\texttt{ADD\_EVENT}, \texttt{MERGE\_EVENT}, \texttt{UPDATE\_SLOT}, \texttt{MARK\_CONFLICT}\}.
+\end{equation}
+The oracle-controlled policy may read controlled metadata: perturbation type, expected operator, and base event identifier. The rule-based policy may read only event fields and current graph state. It cannot use perturbation labels, expected operators, gold grouping fields, or a direct base identifier as a target shortcut.
+
+Target resolution is also split. Oracle target selection may use a base identifier only if that target exists in the graph. Rule-based target selection uses subject, event type, date proximity, amount, status, and textual update or conflict cues. If no target exists for a target-dependent operator, replay returns no target and records a failed operation.
+
+\subsection{Invariant checks and graph transition}
+
+The graph state is
 \begin{equation}
 G_t = (V_t, E_t, L_t),
 \end{equation}
-where $V_t$ contains event and entity nodes, $E_t$ contains event-entity links, and $L_t$ contains append-only version logs. A replay operator $o_t$ induces the graph transition
+where $V_t$ contains event and entity nodes, $E_t$ contains event-entity links, and $L_t$ is an append-only version log. The transition is
 \begin{equation}
 G_t \xrightarrow{o_t} G_{t+1}.
 \end{equation}
-
-The simulation state is summarized as
+The simulator also records a compact state summary
 \begin{equation}
-S_t = \{g_t, n^e_t, n^v_t, n^m_t, n^u_t, n^c_t, n^{uc}_t, r_t\},
+S_t = (g_t, n^e_t, n^v_t, n^m_t, n^u_t, n^c_t, n^{uc}_t),
 \end{equation}
-where $g_t$ is the graph version, $n^e_t$ is the active event count, $n^v_t$ is the active entity count, $n^m_t$ is the merge count, $n^u_t$ is the update count, $n^c_t$ is the conflict count, $n^{uc}_t$ is the unresolved conflict count, and $r_t$ is the replay step. Each accepted record therefore induces
-\begin{equation}
-S_t \rightarrow S_{t+1}.
-\end{equation}
+where the terms denote graph version, active events, active entities, successful merges, successful slot updates, conflict marks, and unresolved conflicts. Failed target resolution is logged with \texttt{operation\_applied=false}; it does not increment successful merge, update, or unresolved conflict counts.
 
-\section{Prototype design}
+\subsection{Version log schema}
 
-\subsection{Evidence-constrained event records}
-
-The schema module normalizes both flat seed records and nested stream records. A record is schema-valid only when required fields are present and the time field is an ISO date string. The evidence module then checks that the evidence span is non-empty and appears in the source text. The gate is intentionally exact and local; it does not infer evidence or call external services.
-
-\subsection{Versioned event graph}
-
-The graph store uses dictionary-backed event and entity nodes plus list-backed edges, conflicts, merges, and version logs. The graph version is the length of the version log. This simple representation is sufficient for a reproducible prototype because every accepted replay step appends an auditable record.
-
-\subsection{Update operators}
-
-The operator set is
-\begin{equation}
-\mathcal{O} = \{\texttt{ADD\_EVENT}, \texttt{MERGE\_EVENT}, \texttt{UPDATE\_SLOT}, \texttt{MARK\_CONFLICT}, \texttt{VERSION\_LOG}\}.
-\end{equation}
-\texttt{ADD\_EVENT} inserts a new event node and entity links. \texttt{MERGE\_EVENT} records that an incoming duplicate refers to an existing event. \texttt{UPDATE\_SLOT} records changed fields and updates the target event. \texttt{MARK\_CONFLICT} appends an unresolved conflict mark. \texttt{VERSION\_LOG} records the applied operation.
-
-\subsection{Discrete-event replay simulation}
-
-Replay orders records by arrival index. At each step the simulator runs schema validation, evidence matching, operator prediction, target selection, graph update execution, and state logging. In the full-control replay, controlled metadata can guide operator prediction and target selection. In the metadata-hidden diagnostic replay, perturbation labels and direct target identifiers are removed before the decision step. Figure~\ref{fig:workflow} summarizes the workflow, and Figure~\ref{fig:transition} summarizes the graph/state transition view.
+Each version log entry stores the replay step, graph version, operator, incoming event identifier, target identifier when available, target-existence flag, applied flag, skip reason, source document identifier, and operation details. Unsupported metadata is logged with \texttt{skipped\_reason=unsupported\_or\_unknown\_metadata}.
+Figure~\ref{fig:workflow} summarizes the replay workflow, and Figure~\ref{fig:transition} shows the state-transition view used by the simulator.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\hsize]{fig1_framework.png}
-\caption{Prototype workflow from seed records to replay artifacts.}
+\includegraphics[width=0.96\hsize]{fig_workflow.pdf}
+\caption{Workflow for evidence-gated replay from event records to graph artifacts and audit traces.}
 \label{fig:workflow}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\hsize]{fig2_update_state_transition.png}
-\caption{Versioned graph update and simulation state transition.}
+\includegraphics[width=0.94\hsize]{fig_state_transition.pdf}
+\caption{State-transition view linking target resolution, invariant checks, graph update, and version-log append.}
 \label{fig:transition}
 \end{figure}
 
-\section{Experimental setup}
+\section{Experiments}
 
-All experiments are local or server-side script runs with fixed seeds. They do not train models, run GPU inference, call external APIs, or copy model files. The main controlled stream starts from 30 seed samples and injects duplicate, conflict, update, and temporal replay perturbations. Negative controls add invalid or unsupported records to test gates. Scale sensitivity increases the seed count while keeping perturbations deterministic and proportional.
+\subsection{Controlled oracle replay}
 
-The metrics are defined as follows:
-\begin{align}
-\text{Schema Validity Rate} &= \frac{\text{valid records}}{\text{total records}},\\
-\text{Evidence Coverage Rate} &= \frac{\text{records with matched evidence}}{\text{total records}},\\
-\text{Merge Agreement} &= \frac{\text{duplicate replays matching injected labels}}{\text{injected duplicates}},\\
-\text{Conflict Agreement} &= \frac{\text{conflict replays matching injected labels}}{\text{injected conflicts}},\\
-\text{Update Agreement} &= \frac{\text{update replays matching injected labels}}{\text{injected updates}},\\
-\text{Replay Completeness} &= \frac{\text{logged replay steps}}{\text{total replay steps}}.
-\end{align}
-The agreement metrics compare the replay decisions with injected perturbation labels under controlled conditions. They should not be interpreted as general extraction or deployment accuracy.
+The controlled stream contains 70 records derived from 30 deterministic seed records. It injects duplicate, update, conflict, and out-of-order replay perturbations. Table~\ref{tab:oracle-replay} reports schema validity, evidence coverage, replay completeness, and agreement with injected operator labels. These agreement values are controlled diagnostics, not extraction accuracy.
 
-\section{Results}
+\input{tables/table_oracle_replay.tex}
 
-\subsection{Controlled replay and ablation}
+\subsection{Metadata-hidden rule-based replay}
 
-The main controlled replay experiment keeps the earlier deterministic 70-record stream. Table~\ref{tab:ablation} reports the component rows and the full replay row. Component rows use ``--'' for non-applicable graph metrics. The full row should be read as agreement with injected perturbation metadata under controlled conditions.
-
-\input{tables/table_ablation.tex}
-
-\subsection{Metadata-hidden diagnostic replay}
-
-The full-control row can benefit from controlled metadata such as \texttt{perturbation\_type}, \texttt{expected\_operator}, and \texttt{base\_event\_id}. To expose this dependency, the metadata-hidden replay removes perturbation labels, expected operators, direct base-event identifiers, and gold group identifiers before operator prediction and target selection. Gold labels are used only after replay to compute agreement. Table~\ref{tab:metadata-hidden} compares the two settings.
+The metadata-hidden diagnostic removes perturbation labels, expected operators, direct base identifiers, and gold grouping fields before policy decisions. Gold labels are restored only after replay to compute agreement. Table~\ref{tab:metadata-hidden} shows that the metadata-hidden operator agreement is 0.586, exposing the current rule limits.
 
 \input{tables/table_metadata_hidden.tex}
 
-This diagnostic is not a benchmark evaluation. If metadata-hidden agreement is lower than full-control agreement, the result shows that controlled metadata helps the current prototype. If it remains high, the result shows only that the deterministic rules capture part of the injected structure in the synthetic controlled stream; it does not demonstrate general financial information-extraction performance.
+\subsection{Public mini-case}
 
-\subsection{Public-dataset mini-case}
-
-The public-dataset mini-case is not used as an extraction benchmark. It checks whether externally sourced financial event records can pass the same schema, evidence, and replay pipeline used by the controlled simulation. The event records are converted from a small subset of the open FewFC research dataset \cite{fewfc} and are evaluated only as replay inputs.
+The public mini-case uses 20 FewFC-derived records as an external sanity check only. It tests whether converted public financial event text can pass the same schema, exact evidence, and replay path. Table~\ref{tab:public-mini-case} reports this check. It is not a benchmark and does not report extraction F1.
 
 \input{tables/table_public_mini_case.tex}
 
-Table~\ref{tab:public-mini-case} reports 20 FewFC-derived records. Schema validity, evidence coverage, and replay completeness are all 1.000 in this mini-case. These values mean only that the converted public records can pass the prototype's local schema, exact-evidence, and add-event replay path; they are not extraction accuracy, benchmark performance, or evidence of general dataset coverage.
+\subsection{Negative controls and invariant checks}
 
-\subsection{Negative-control sanity checks}
-
-The negative-control stream contains missing required fields, evidence mismatches, invalid dates, and unsupported perturbation metadata. Table~\ref{tab:negative-controls} reports whether the schema, evidence, date, and operator-handling paths reject or handle these cases without crashing. This is a sanity check for gate behavior, not a broad robustness claim.
+Negative controls include missing required fields, evidence mismatches, invalid dates, and unsupported metadata. Table~\ref{tab:negative-controls} reports rejection and logging behavior. Table~\ref{tab:invariant-checks} reports a separate small invariant check suite. These invariant checks verify that failed target resolution and unsupported metadata are logged without being counted as successful graph updates.
 
 \input{tables/table_negative_controls.tex}
+\input{tables/table_invariant_checks.tex}
 
-\subsection{Runtime and scale sensitivity}
+\subsection{Scale sensitivity and case study}
 
-The scale sensitivity run uses fixed seeds and controlled streams at the requested scales. Table~\ref{tab:scale} reports replay size, active graph artifacts, replay completeness, and runtime. Figure~\ref{fig:runtime} visualizes total replay runtime. Runtime can vary across local and server environments, so the result is interpreted only as lightweight scaling behavior under controlled streams.
+The scale sanity run uses deterministic streams up to 560 replay records. Table~\ref{tab:scale} reports graph sizes and runtime per record, while Figure~\ref{fig:diagnostic-results} combines metadata-hidden agreement with runtime scaling. Table~\ref{tab:case-study} provides a short replay-trace excerpt.
 
 \input{tables/table_scale_sensitivity.tex}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.88\hsize]{fig_runtime_scaling.pdf}
-\caption{Runtime scaling under controlled streams.}
-\label{fig:runtime}
+\includegraphics[width=0.96\hsize]{fig_diagnostic_results.pdf}
+\caption{Diagnostic view of oracle-controlled versus metadata-hidden operator agreement and scale sanity runtime.}
+\label{fig:diagnostic-results}
 \end{figure}
-
-\subsection{Case study replay trace}
-
-The case study converts replay traces, updates, and conflict logs into a compact excerpt. Table~\ref{tab:case-study} shows representative add, conflict, merge, and update steps. The table is intentionally short so that the manuscript highlights the replay mechanism rather than reproducing the full log.
 
 \input{tables/table_case_study_excerpt.tex}
 
 \section{Discussion}
 
-The prototype separates event-record extraction from event-stream maintenance. Its value is in the reproducible state-transition path: a record must satisfy local schema and evidence gates before it changes the versioned graph, and the resulting transition is logged. This makes controlled perturbations inspectable across local and server runs.
+The oracle-controlled setting is an upper-bound sanity check because controlled metadata can identify intended operators and targets. It should not be read as deployment performance. The metadata-hidden result is more informative for method limits: it shows that simple rules recover part of the injected structure, but still miss many controlled operator labels.
 
-The limitations are central. The sample stream is deterministic and compact. The evidence gate is exact string containment. Operator prediction is rule-based and partly assisted by controlled metadata in the full-control setting. Conflict handling marks unresolved conflicts but does not implement a human review workflow. The current graph store is in memory and designed for reproducibility experiments rather than persistent graph infrastructure. The public mini-case is intentionally small and serves only as an external sanity check; larger public-dataset replay studies are left for the camera-ready extension.
-
-These limitations keep the claim conservative. The experiments support only the implemented controlled-replay prototype and its synthetic controlled streams. They do not claim general extraction quality, financial utility, market prediction, or deployment readiness.
+The public mini-case is deliberately small and is used only to exercise the replay path on externally sourced text. The exact span gate is strict: it favors auditability and reproducibility over tolerant matching. The artifact reports no extraction F1 and no market prediction. It also does not implement human review, persistent graph storage, or large public-dataset replay. Future work should expand public replay coverage, add human review workflows for unresolved conflicts, and move the graph store to a durable backend.
 
 \section{Conclusion}
 
-This paper presented a controlled-replay prototype for auditable versioned financial event graph updates. The prototype normalizes controlled financial event records, checks exact evidence spans, applies deterministic graph update operators, and replays synthetic controlled streams as a discrete-event simulation. The evaluation includes controlled replay agreement, a metadata-hidden diagnostic, a public-dataset mini-case, negative-control sanity checks, scale-sensitivity results, compact LaTeX tables, and a template-based LaTeX build. The resulting evidence supports a limited auditability case-study conclusion: controlled financial event graph updates can be replayed and inspected through explicit state-transition artifacts in the implemented prototype.
+This paper presented an evidence-gated controlled replay prototype for auditable versioned financial event graph updates. The artifact records schema checks, exact evidence containment, target resolution, graph transitions, invariant failures, and version logs. The evidence supports a narrow auditability claim: controlled financial event updates can be replayed into inspectable graph artifacts with explicit success and failure accounting.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{references}

@@ -1,16 +1,16 @@
 \begin{table}[t]
-\caption{Case-study replay excerpt.}
+\caption{Replay trace excerpt showing representative graph transitions.}
 \label{tab:case-study}
-\begin{tabular}{@{}rlp{0.31\hsize}p{0.31\hsize}@{}}
+\begin{tabular}{@{}rlp{0.28\hsize}p{0.34\hsize}@{}}
 \toprule
 Step & Operator & Event transition & Replay note\\
-\colrule
-1 & \texttt{ADD\_EVENT} & \texttt{E000016} & accepted evidence-backed event\\
-4 & \texttt{MARK\_CONFLICT} & \texttt{E000003\_CON003} $\rightarrow$ \texttt{E000003} & marked unresolved conflict\\
-7 & \texttt{MERGE\_EVENT} & \texttt{E000010\_DUP010} $\rightarrow$ \texttt{E000010} & merged duplicate into target\\
-10 & \texttt{UPDATE\_SLOT} & \texttt{E000004\_UPD004} $\rightarrow$ \texttt{E000004} & updated changed slots\\
-32 & \texttt{UPDATE\_SLOT} & \texttt{E000003\_UPD003} $\rightarrow$ \texttt{E000003\_TS003} & updated changed slots\\
-63 & \texttt{MARK\_CONFLICT} & \texttt{E000004\_CON004} $\rightarrow$ \texttt{E000004\_TS004} & marked unresolved conflict\\
-\botrule
+\midrule
+1 & \texttt{ADD\_EVENT} & E000016 & accepted evidence-backed record\\
+2 & \texttt{ADD\_EVENT} & E000007\_TS007 & accepted evidence-backed record\\
+3 & \texttt{ADD\_EVENT} & E000007 & accepted evidence-backed record\\
+19 & \texttt{MARK\_CONFLICT} & E000005\_CON005 -> E000005 & marked unresolved conflict\\
+29 & \texttt{MERGE\_EVENT} & E000007\_DUP007 -> E000007 & merged duplicate into target\\
+32 & \texttt{UPDATE\_SLOT} & E000003\_UPD003 -> E000003\_TS003 & updated changed slots\\
+\bottomrule
 \end{tabular}
 \end{table}

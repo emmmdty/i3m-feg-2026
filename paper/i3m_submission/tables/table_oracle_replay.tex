@@ -1,0 +1,14 @@
+\begin{table}[t]
+\caption{Controlled replay diagnostics; agreement compares replay decisions with injected operator labels, not extraction accuracy.}
+\label{tab:oracle-replay}
+\begin{tabular*}{\hsize}{@{\extracolsep{\fill}}lrrrrrrrr@{}}
+\toprule
+Method & Schema & Evidence & Merge & Conflict & Update & Operator & Replay & n\\
+\midrule
+Direct records & 1.000 & 1.000 & -- & -- & -- & -- & -- & 70\\
+Schema gate & 1.000 & 1.000 & -- & -- & -- & -- & -- & 70\\
+Evidence gate & 1.000 & 1.000 & -- & -- & -- & -- & 1.000 & 70\\
+Oracle-controlled & 1.000 & 1.000 & 1.000 & 1.000 & 1.000 & 1.000 & 0.871 & 70\\
+\bottomrule
+\end{tabular*}
+\end{table}

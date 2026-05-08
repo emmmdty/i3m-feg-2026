@@ -1,0 +1,16 @@
+\begin{table}[t]
+\caption{Invariant checks for failed target resolution and unsupported metadata.}
+\label{tab:invariant-checks}
+\begin{tabular}{@{}p{0.21\hsize}p{0.34\hsize}lll@{}}
+\toprule
+Case & Expected behavior & Applied & Logged & Result\\
+\midrule
+Missing target merge\_event & log missing target without success count & false & true & pass\\
+Missing target update\_slot & log missing target without success count & false & true & pass\\
+Missing target mark\_conflict & log missing target without success count & false & true & pass\\
+Invalid nested event & return schema error & false & true & pass\\
+Unsupported metadata & log unsupported metadata without update & false & true & pass\\
+Evidence mismatch & reject before graph update & false & true & pass\\
+\bottomrule
+\end{tabular}
+\end{table}

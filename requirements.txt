@@ -1,1 +1,1 @@
-matplotlib
+# No required Python package dependencies.

@@ -1,2 +1,1 @@
-"""Minimal event graph prototype package for Stage 02."""
-
+"""Repository-local Python package root."""

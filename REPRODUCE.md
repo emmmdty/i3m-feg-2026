@@ -1,107 +1,66 @@
 # Reproducing the I3M/EMSS Controlled-Replay Artifact
 
-Run all commands from the repository root unless noted otherwise.
+Run all commands from the repository root.
 
-## 1. Minimal Python Environment
+## Environment
 
-Use Python 3.10 or newer. The core replay scripts use the Python standard library. `matplotlib` is listed in `requirements.txt` for optional figure rendering compatibility, but the current scale-sensitivity figure writer has a standard-library fallback.
+Use Python 3.10 or newer. The replay code uses the Python standard library. The PDF build requires `latexmk` or `pdflatex` plus `bibtex`.
 
 ```bash
 python --version
-python -m pip install -r requirements.txt
 ```
 
-LaTeX dependencies are not Python packages. The final PDF build requires `latexmk` and `pdflatex`.
-
-## 2. Synthetic Controlled Replay
-
-Regenerate the deterministic seed records and controlled perturbation stream:
+## One-Command Reproduction
 
 ```bash
-python scripts/build_seed_financial_samples.py --out data/samples/seed_financial_events.jsonl --n 30 --seed 42
-
-python scripts/generate_perturbation_stream.py --input data/samples/seed_financial_events.jsonl --out data/processed/controlled_stream.jsonl --seed 42 --duplicates 10 --conflicts 10 --updates 10 --shuffle
-
-python scripts/run_demo.py
+bash scripts/reproduce_all.sh
 ```
 
-## 3. Negative Controls
+This command runs the complete artifact pipeline:
 
-```bash
-python scripts/generate_negative_controls.py --input data/samples/seed_financial_events.jsonl --out data/processed/negative_control_stream.jsonl --seed 42
+1. Prepare deterministic synthetic seed records and a 70-record controlled replay stream.
+2. Run oracle-controlled replay and write trace artifacts.
+3. Generate oracle-controlled replay diagnostics.
+4. Generate metadata-hidden diagnostics.
+5. Run negative controls.
+6. Run invariant checks.
+7. Run the 560-record scale sanity check.
+8. Run the 20-record FewFC-derived public mini-case.
+9. Refresh LaTeX tables and vector figures.
+10. Build the final PDF.
 
-python scripts/run_sanity_checks.py --input data/processed/negative_control_stream.jsonl --out tables/sanity_check_results.csv --tex-table paper/i3m_submission/tables/table_negative_controls.tex
-```
+## Key Outputs
 
-## 4. Metadata-Hidden Diagnostic
-
-```bash
-python scripts/run_metadata_hidden_replay.py --input data/processed/controlled_stream.jsonl --out tables/metadata_hidden_results.csv --tex-table paper/i3m_submission/tables/table_metadata_hidden.tex
-```
-
-## 5. Scale Sensitivity
-
-```bash
-python scripts/run_scale_sensitivity.py --out tables/scale_sensitivity_results.csv --figure paper/i3m_submission/figures/fig_runtime_scaling.pdf --tex-table paper/i3m_submission/tables/table_scale_sensitivity.tex --seed 42 --scales 30 60 120 240
-```
-
-## 6. Public Mini-Case
-
-The repository includes `data/samples/public_mini_events.jsonl`, a FewFC-derived 20-record external sanity case. It is not an extraction benchmark.
-
-Run the public mini-case if the sample file is present:
-
-```bash
-python scripts/run_public_mini_case.py --input data/samples/public_mini_events.jsonl --out tables/public_mini_case_results.csv --tex-table paper/i3m_submission/tables/table_public_mini_case.tex --trace-out outputs/public_mini_replay_trace.jsonl
-```
-
-If the sample file must be regenerated after downloading FewFC, use:
-
-```bash
-python scripts/prepare_public_mini_case.py --source fewfc --input-dir data/raw/FewFC --out data/samples/public_mini_events.jsonl --max-records 20 --seed 42
-```
-
-Do not fabricate public mini-case records if the FewFC source is unavailable or unparsable.
-
-## 7. LaTeX PDF Build
-
-Refresh the submission tables and rebuild the PDF:
-
-```bash
-python scripts/run_ablation.py --config configs/stage3_experiment.json --out tables/ablation_results.csv
-
-python scripts/make_submission_tables.py --ablation tables/ablation_results.csv --case-study tables/case_study_updates.csv --sanity tables/sanity_check_results.csv --scale tables/scale_sensitivity_results.csv --metadata-hidden tables/metadata_hidden_results.csv --out-dir paper/i3m_submission/tables
-
-bash paper/i3m_submission/build_latex.sh
-```
-
-The final PDF paths are:
-
-- `paper/i3m_submission/manuscript.pdf`
-- `paper/manuscript_i3m2026_v2.pdf`
-
-## 8. Expected Key Outputs
-
-- `outputs/replay_trace.jsonl`
-- `outputs/updates.jsonl`
-- `outputs/conflicts.jsonl`
-- `tables/ablation_results.csv`
-- `tables/sanity_check_results.csv`
+- `tables/oracle_replay_results.csv`
 - `tables/metadata_hidden_results.csv`
-- `tables/scale_sensitivity_results.csv`
 - `tables/public_mini_case_results.csv`
-- `paper/i3m_submission/tables/table_ablation.tex`
-- `paper/i3m_submission/tables/table_case_study_excerpt.tex`
-- `paper/i3m_submission/tables/table_negative_controls.tex`
+- `tables/negative_controls_results.csv`
+- `tables/invariant_checks_results.csv`
+- `tables/scale_sensitivity_results.csv`
+- `paper/i3m_submission/tables/table_oracle_replay.tex`
 - `paper/i3m_submission/tables/table_metadata_hidden.tex`
-- `paper/i3m_submission/tables/table_scale_sensitivity.tex`
 - `paper/i3m_submission/tables/table_public_mini_case.tex`
+- `paper/i3m_submission/tables/table_negative_controls.tex`
+- `paper/i3m_submission/tables/table_invariant_checks.tex`
+- `paper/i3m_submission/tables/table_scale_sensitivity.tex`
+- `paper/i3m_submission/tables/table_case_study_excerpt.tex`
+- `paper/i3m_submission/figures/fig_workflow.pdf`
+- `paper/i3m_submission/figures/fig_state_transition.pdf`
+- `paper/i3m_submission/figures/fig_diagnostic_results.pdf`
 - `paper/manuscript_i3m2026_v2.pdf`
 
-## 9. Notes on Raw/Public Data
+Generated CSVs, replay traces, and processed streams are ignored by Git and can be regenerated.
 
-The synthetic controlled replay data is generated locally and is reproducible from the scripts above.
+## Public Mini-Case
 
-The full raw FewFC dataset is not committed because it is an upstream public dataset and should remain under its original repository and license terms. The committed mini-case is a small converted sanity sample with provenance fields and license notes. It is used only to check the replay path on public event text, not to report extraction accuracy.
+The committed public mini-case is a small converted FewFC-derived sanity sample. It checks replay-path compatibility only. If regenerating from a local FewFC JSON file:
 
-No GPU training, model inference, market prediction, investment advice, trading signal generation, or external API call is required. Reproduction status: `no_gpu_training_required`.
+```bash
+python scripts/prepare_public_mini_case.py --input path/to/fewfc.json --out data/samples/public_mini_events.jsonl --max-records 20
+```
+
+Do not fabricate public mini-case records if the source file is unavailable or unparsable.
+
+## Reproducibility Boundaries
+
+The artifact performs no model training, no model inference, and no external API calls. It reports controlled replay diagnostics and auditability evidence only.
