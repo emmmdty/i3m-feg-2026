@@ -1,0 +1,22 @@
+Title:           A Controlled-Replay Prototype for Auditable Versioned Financial Event Graph Updates
+Subject:         
+Keywords:        
+Author:          Jiakai Tong; Yue Zhao; 
+Creator:         LaTeX with hyperref
+Producer:        pdfTeX-1.40.22
+CreationDate:    Fri May  8 08:44:40 2026 CST
+ModDate:         Fri May  8 08:44:40 2026 CST
+Custom Metadata: yes
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           8
+Encrypted:       no
+Page size:       544.252 x 742.677 pts
+Page rot:        0
+File size:       205668 bytes
+Optimized:       no
+PDF version:     1.5

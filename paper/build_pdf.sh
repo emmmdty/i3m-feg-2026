@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Legacy Markdown/PDF helper. This is not the final I3M/EMSS submission
+# build path; use paper/i3m_submission/build_latex.sh for the paper PDF.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -8,7 +10,7 @@ MD="paper/manuscript.md"
 PDF="paper/manuscript_v1.pdf"
 HTML="paper/manuscript_v1.html"
 STYLE="$(mktemp)"
-PY="/home/tjk/.codex/venvs/codex-tools/bin/python"
+PY="${PYTHON:-python3}"
 
 cleanup() {
   rm -f "$STYLE"
